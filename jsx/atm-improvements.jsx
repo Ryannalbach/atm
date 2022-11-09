@@ -1,5 +1,5 @@
 const ATMDeposit = ({ onChange, isDeposit, isValid }) => {
-    const choice = ['Deposit', 'Cash Back'];
+    const choice = ['Deposit', 'Withdraw'];
     console.log(`ATM isDeposit: ${isDeposit}`);
     return (
       <label className="label huge">
@@ -25,30 +25,48 @@ const ATMDeposit = ({ onChange, isDeposit, isValid }) => {
       if (Number(event.target.value) <= 0) {
         return setValidTransaction(false);
       }
-      if (atmMode === 'Cash Back' && Number(event.target.value) > totalState) {
+      if (atmMode === 'Withdraw' && Number(event.target.value) > totalState) {
         setValidTransaction(false);
       } else {
         setValidTransaction(true);
       }
       setDeposit(Number(event.target.value));
     };
+
     const handleSubmit = (event) => {
-      let newTotal = isDeposit ? totalState + deposit : totalState - deposit;
-      setTotalState(newTotal);
-      setValidTransaction(false);
-      event.preventDefault();
-    };
-  
-    const handleModeSelect = (event) => {
-      console.log(event.target.value);
-      setAtmMode(event.target.value);
-      setValidTransaction(false);
-      if (event.target.value === 'Deposit') {
-        setIsDeposit(true);
-      } else {
-        setIsDeposit(false);
-      }
-    };
+        if (deposit <= 0) {
+          return (event.preventDefault());
+        }
+        let newTotal;
+        if (isDeposit) {
+          newTotal = totalState + deposit;
+          setTotalState(newTotal);
+        }
+        else if (!isDeposit && totalState >= deposit && deposit > 0) {
+          let result = confirm("Confirm withdrawal ammount");
+          if (result) {
+            newTotal = totalState - deposit;
+            setTotalState(newTotal);
+          } else {
+            setTotalState(totalState);
+          }
+        } else if (!isDeposit && totalState < deposit) {
+          alert("Insufficient funds available")
+          setTotalState(totalState);
+        }
+        event.preventDefault();
+      };
+
+      const handleModeSelect = (event) => {
+        console.log(event.target.value);
+        setAtmMode(event.target.value);
+        setValidTransaction(false);
+        if (event.target.value === 'Deposit') {
+          setIsDeposit(true);
+        } else {
+          setIsDeposit(false);
+        }
+      };
   
     return (
       <form onSubmit={handleSubmit}>
@@ -60,8 +78,8 @@ const ATMDeposit = ({ onChange, isDeposit, isValid }) => {
             <option id="deposit-selection" value="Deposit">
               Deposit
             </option>
-            <option id="cashback-selection" value="Cash Back">
-              Cash Back
+            <option id="cashback-selection" value="Withdraw">
+              Withdraw
             </option>
           </select>
           {atmMode && (
